@@ -1,0 +1,31 @@
+<h1>Tahapan Rekomendasi</h1>
+
+<h2>Mengambil data produk</h2>
+
+{{ df_awal|safe }}
+
+<h2>Membuat data input dengan menggabungkan product_id, skin_type, dan age_range</h2>
+    
+{{ df_input|safe }}
+
+<h2>Melakukan one hot encoding</h2>
+{{ df_encoding|safe }}
+
+<h2>Melakukan prediksi rating</h2>
+{{ df_rating|safe }}
+
+<h2>Melakukan prediksi rating text</h2>
+{{ df_rating_text|safe }}
+
+<h2>Melakukan klasifikasi is_recommended</h2>
+{{ df_is_recommended|safe }}
+
+<h2>Filter produk yang direkomendasikan dan hitung rata-rata rating</h2>
+{{ df_hasil|safe }}
+
+<h2>Menghitung skor akhir</h2>
+<p>Skor akhir dihitung dengan wilson score interval</p>
+{{ df_final_score|safe }}
+
+<h2>Menampilkan produk yang direkomendasikan dengan menghilangkan produk yang tidak memiliki review dan mengurutkan berdasarkan skor akhir</h2>
+{{ df_hasil_akhir|safe }}

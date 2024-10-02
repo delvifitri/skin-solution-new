@@ -1,0 +1,110 @@
+{% extends 'base.html' %}
+{% block content %}
+  <h2>Memuat Data</h2>
+  <div class="overflow-auto">
+    {{ data['raw_data']|safe }}
+  </div>
+
+  <h2>Preprosesing Data</h2>
+  <div class="overflow-auto">
+    {{ data['cleaned_data']|safe }}
+  </div>
+  
+  <h2>Lexicon-based Sentiment Analysis</h2>
+  <div class="overflow-auto">
+    {{ data['processed_data']|safe }}
+  </div>
+
+  <h2>Data Train Decision Tree Regression 1</h2>
+  <div class="overflow-auto">
+    {{ data['dtr1_train']|safe }}
+  </div>
+
+  <h2>Data Test Decision Tree Regression 1</h2>
+  <div class="overflow-auto">
+    {{ data['dtr1_test']|safe }}
+  </div>
+
+  <h2>Hasil Pengujian Decision Tree Regression 1</h2>
+  <div class="overflow-auto">
+    {{ data['dtr1_compare']|safe }}
+  </div>
+
+  <h2>Data Train Decision Tree Regression 2</h2>
+  <div class="overflow-auto">
+    {{ data['dtr2_train']|safe }}
+  </div>
+
+  <h2>Data Test Decision Tree Regression 2</h2>
+  <div class="overflow-auto">
+    {{ data['dtr2_test']|safe }}
+  </div>
+
+  <h2>Hasil Pengujian Decision Tree Regression 2</h2>
+  <div class="overflow-auto">
+    {{ data['dtr2_compare']|safe }}
+  </div>
+
+  <h2>Data Train SVM</h2>
+  <div class="overflow-auto">
+    {{ data['svm_train']|safe }}
+  </div>
+
+  <h2>Data Test SVM</h2>
+  <div class="overflow-auto">
+    {{ data['svm_test']|safe }}
+  </div>
+
+  <h2>Hasil Pengujian SVM</h2>
+  <div class="overflow-auto">
+    {{ data['svm_compare']|safe }}
+  </div>
+
+  <div class="grid">
+    <div class="overflow-auto">
+        <table>
+            <thead>
+                <tr>
+                    <th>Metrik</th>
+                    <th>Nilai</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>R<sup>2</sup> Model 1</td>
+                    <td>{{data['r2_1']}}</td>
+                </tr>
+                <tr>
+                    <td>R<sup>2</sup> Model 2</td>
+                    <td>{{data['r2_2']}}</td>
+                </tr>
+                <tr>
+                    <td>MAE Model 1</td>
+                    <td>{{data['mae1']}}</td>
+                </tr>
+                <tr>
+                    <td>MAE Model 2</td>
+                    <td>{{data['mae2']}}</td>
+                </tr>
+                <tr>
+                    <td>Accuracy SVM</td>
+                    <td>{{data['accuracy']}}</td>
+                </tr>
+                <tr>
+                    <td>Precision SVM</td>
+                    <td>{{data['precision']}}</td>
+                </tr>
+                <tr>
+                    <td>Recall SVM</td>
+                    <td>{{data['recall']}}</td>
+                </tr>
+                <tr>
+                    <td>F1-Score SVM</td>
+                    <td>{{data['f1_score']}}</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+    <img src="data:image/png;base64,{{ data.confusion_matrix }}" alt="">
+  </div>
+{% endblock %}

@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Skin Solution</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="header">
+        <a href="/" style="text-decoration: none; color: white;">
+        <h1>Skin Solution</h1>
+        </a>
+        <div class="icons">
+            <img src="{{ url_for('static', filename='tubes.png') }}">
+        </div>
+    </div>
+    <div class="container">
+        <div class="left">
+            <img src="{{ url_for('static', filename='image 2.png') }}" alt="Face Icon">
+        </div>
+        <div class="right">
+            <form action="recommendations">
+                <h2>Isi Form Berikut Sesuai Diri Anda</h2>
+                <div class="form-group">
+                    <label for="age_range">Usia</label>
+                    <select id="age_range" name="age_range" required>
+                        <option value>--- Pilih Usia ---</option>
+                        <option value="18 and Under">18 ke bawah</option>
+                        <option value="19 - 24">19 - 24</option>
+                        <option value="25 - 29">25 - 29</option>
+                        <option value="30 - 34">30 - 34</option>
+                        <option value="35 - 39">35 - 39</option>
+                        <option value="40 - 44">40 - 44</option>
+                        <option value="45 and Above">45 ke atas</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="skin_type">Jenis Kulit</label>
+                    <select name="skin_type" id="skin_type" required>
+                        <option value>--- Pilih Jenis Kulit ---</option>
+                        <option value="Combination">Combination</option>
+                        <option value="Dry">Dry</option>
+                        <option value="Normal">Normal</option>
+                        <option value="Oily">Oily</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="tag">Jenis Skincare</label>
+                    <select id="tag" name="tag" required>
+                        <option value>--- Pilih Jenis Skincare ---</option>
+                        <option value="facial-wash">Facial Wash</option>
+                        <option value="toner">Toner</option>
+                        <option value="serum-essence">Serum & Essence</option>
+                        <option value="cream-1">Moisturizer Cream</option>
+                        <option value="lotion-emulsion">Moisturizer Lotion</option>
+                        <option value="sun-protection-1">Sunscreen</option>
+                    </select>
+                </div>
+                <button type="submit">Beri Rekomendasi</button>
+            </form>
+        </div>
+    </div>
+</body>
+</html>
+
+

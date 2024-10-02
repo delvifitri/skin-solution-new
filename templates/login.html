@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="color-scheme" content="light dark" />
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.pink.min.css"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.colors.min.css"
+    />
+    <title>Login</title>
+  </head>
+  <body>
+    <main class="container">
+      <dialog open>
+        <article class="component">
+          <h1>Admin Login</h1>
+          <form method="post">
+            <fieldset>
+              <label> Password </label>
+              <input type="password" name="password" placeholder="Password" />
+              {% if error %}
+              <small class="pico-color-red-500">{{ error }}</small>
+              {% endif %}
+            </fieldset>
+            <input type="submit" value="Login" />
+          </form>
+        </article>
+      </dialog>
+    </main>
+  </body>
+</html>

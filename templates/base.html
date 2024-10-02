@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="color-scheme" content="light dark" />
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.pink.min.css"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.colors.min.css"
+    />
+    <title>Admin</title>
+    {% block head %}{% endblock %}
+  </head>
+  <body>
+    <header>
+      <div class="container">
+        <nav>
+          <ul>
+            <a href="/admin">
+              <li><strong>SkinSolution</strong></li>
+            </a>
+          </ul>
+          <ul>
+            <li>
+              <details class="dropdown">
+                <summary>Daftar Model</summary>
+                <ul dir="rtl">
+                  <li>
+                    <a href="/models?tag=facial-wash">Facial Wash</a>
+                  </li>
+                  <li><a href="/models?tag=toner">Toner</a></li>
+                  <li>
+                    <a href="/models?tag=serum-essence"
+                      >Serum & Essence</a
+                    >
+                  </li>
+                  <li>
+                    <a href="/models?tag=cream-1">Moisturizer (Cream)</a>
+                  </li>
+                  <li>
+                    <a href="/models?tag=lotion-emulsion"
+                      >Moisturizer (Lotion)</a
+                    >
+                  </li>
+                  <li>
+                    <a href="/models?tag=sun-protection-1">Sunscreen</a>
+                  </li>
+                </ul>
+              </details>
+            </li>
+            <li>
+              <a
+                href="#"
+                onclick="document.querySelector('#train-dialog').showModal()"
+                >Latih Model</a
+              >
+            </li>
+            <li>
+              <a href="/logout">Logout</a>
+            </li>
+          </ul>
+        </nav>
+      </div>
+    </header>
+    <main class="container">{% block content %}{% endblock %}</main>
+    <dialog id="train-dialog">
+      <article class="component">
+        <h2>Latih Model</h2>
+        <form
+          id="train"
+          method="post"
+          action="/training"
+          enctype="multipart/form-data"
+        >
+          <input type="file" name="dataset" id="dataset" required/>
+          <select id="tag" name="tag" required>
+            <option value="facial-wash">Facial Wash</option>
+            <option value="toner">Toner</option>
+            <option value="serum-essence">Serum</option>
+            <option value="cream-1">Moisturizer Cream</option>
+            <option value="lotion-emulsion">Moisturizer Lotion</option>
+            <option value="sun-protection-1">Sunscreen</option>
+          </select>
+        </form>
+        <footer>
+          <div class="grid">
+            <button
+              type="reset"
+              onclick="document.querySelector('#train-dialog').close()"
+            >
+              Batal
+            </button>
+            <button type="submit" form="train" style="width: initial;">Latih</button>
+          </div>
+        </footer>
+      </article>
+    </dialog>
+    {% block foot %}{% endblock %}
+  </body>
+</html>

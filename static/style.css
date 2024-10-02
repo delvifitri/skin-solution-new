@@ -1,0 +1,118 @@
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap');
+
+* {
+    font-family: 'Poppins', sans-serif;
+}
+
+body {
+    background-color: #ffe4f4;
+    margin: 0;
+    padding: 0;
+}
+
+.header {
+    background-color: #ffafd6;
+    padding: 20px;
+    text-align: center;
+    color: #fff
+    
+}
+
+.header h1 {
+    margin: 0;
+    font-size: 36px;
+}
+
+.header .icons {
+    display: flex;
+    justify-content: center;
+    margin-top: 10px;
+}
+
+.header .icons img {
+    margin: 0 5px;
+    height: 64px;
+}
+
+.container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: #f8e4ec;
+    border-radius: 15px;
+    padding: 20px;
+    margin: 40px 100px;
+}
+
+.container .left {
+    flex: 1;
+    text-align: center;
+}
+
+.container .left img {
+    width: 150px;
+    height: 150px;
+}
+
+.container .right {
+    flex: 2;
+    text-align: center;
+}
+
+.container .right h2 {
+    color: #ff87b5;
+}
+
+.container .right .form-group {
+    margin-top: 20px;
+    display: flex;
+    align-content: center;
+}
+
+.container .right label {
+    display: inline-block;
+    width: 20%;
+    text-align: left;
+    color: #555;
+    align-self: center;
+}
+
+.container .right select {
+    width: 75%;
+    padding: 10px;
+    border-radius: 5px;
+    border: 1px solid #ccc;
+}
+
+.container .right button {
+    background-color: #ff87b5;
+    color: #fff;
+    border: none;
+    padding: 15px;
+    border-radius: 5px;
+    margin-top: 20px;
+    width: 200px;
+    cursor: pointer;
+}
+
+.container .right button:hover {
+    background-color: #ff6699;
+}
+
+
+@media screen and (max-width: 768px) {
+    .container {
+        flex-direction: column;
+        margin: 40px 20px;
+    }
+    .form-group {
+        flex-direction: column;
+    }
+    .form-group label {
+        width: 100% !important;
+        text-align: left;
+    }
+    .form-group select {
+        width: 100% !important;
+    }
+}

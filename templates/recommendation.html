@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Skin Solution - Product Recommendations</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style2.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    <style>
+        /* HTML: <div class="loader"></div> */
+        .loader-overlay {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.5);
+        z-index: 1000;
+        }
+        .loader {
+        width: 50px;
+        aspect-ratio: 1;
+        display:grid;
+        mask: conic-gradient(from 15deg,#0000,#000);
+        -webkit-mask: conic-gradient(from 15deg,#0000,#000);
+        animation: l26 1s infinite steps(12);
+        -webkit-animation: l26 1s infinite steps(12);
+        -moz-animation: l26 1s infinite steps(12);
+        }
+        .loader,
+        .loader:before,
+        .loader:after{
+        background:
+            radial-gradient(closest-side at 50% 12.5%,
+            #f03355 96%,#0000) 50% 0/20% 80% repeat-y,
+            radial-gradient(closest-side at 12.5% 50%,
+            #f03355 96%,#0000) 0 50%/80% 20% repeat-x;
+        }
+        .loader:before,
+        .loader:after {
+        content: "";
+        grid-area: 1/1;
+        transform: rotate(30deg);
+        }
+        .loader:after {
+        transform: rotate(60deg);
+        }
+
+        @keyframes l26 {
+        100% {transform:rotate(1turn)}
+        }
+        .modal {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+        }
+        .modal-content {
+            display: flex;
+            flex-direction: column;
+            background-color: white;
+            padding: 1em;
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+            max-width: 80%;
+            max-height: 80%;
+            overflow-y: auto;
+        }
+        .close {
+            color: red;
+            font-size: 1.5em;
+            cursor: pointer;
+            position: fixed;
+            align-self: flex-end;
+            background-color: white;
+            display: block;
+        }
+        ul.pagination {
+            display: flex;
+            list-style: none;
+            padding: 0;
+            justify-content: center;
+        }
+        li.page-item {
+            margin: 0 0.5em;
+        }
+        li.page-item.active {
+            font-weight: bold;
+        }
+        button {
+            cursor: pointer;
+            padding: 0.5em 1em;
+            border: none;
+            border-radius: 5px;
+            background-color: palevioletred; 
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <a href="/" style="text-decoration: none; color: white;">
+        <h1>Skin Solution</h1>
+        </a>
+        <div class="icons">
+            <img src="{{ url_for('static', filename='tubes.png') }}">
+        </div>
+    </div>
+    <div class="container">
+        <div class="result-header">
+            <h2>Hasil Rekomendasi Produk</h2> <div style="align-content: center;"><button onclick="showProcess()">Lihat Proses</button></div>
+        </div>
+        {% for product in products %}
+            <div class="product">
+                <img src="{{ product.image }}" alt="{{ product.name }}">
+                <div class="product-details" style=" width: 100%;">
+                    <h3>{{ product.brand }} {{ product.name }}</h3>
+                    <p class="more">{{ product.description }}</p>
+                    <div class="misc">
+                        <div>
+                            <p><strong>Skor:</strong> {{ product.final_score }}</p>
+                            <p><strong>Harga:</strong> {{ "Rp{:,.2f}".format(product.price) }}</p>
+                        </div>
+                        <div style="display: flex; flex-direction: column; justify-content: space-around;">
+                            <button style="bottom: 0;"
+                            onclick="showReviews('{{ product.id }}')">Lihat Review</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        {% endfor %}
+        {{ pagination.links }}
+    </div>
+    <link src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css"></link>
+    <link rel="stylesheet" href="https://cdn.datatables.net/2.1.0/css/dataTables.dataTables.css" />
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="https://cdn.datatables.net/2.1.0/js/dataTables.js"></script>
+    <script>
+        const lowerBound = 250;
+        const upperBound = lowerBound + 100;
+        document.querySelectorAll('.more').forEach((element) => {
+            const text = element.innerText;
+            if (text.length > upperBound) {
+                // truncate text after 100 characters but before the next space
+                const truncated = text.substring(0, lowerBound) + text.substring(lowerBound, text.indexOf(' ', lowerBound)) + '...';
+                element.innerText = truncated;
+                element.setAttribute('data-toggle', text);
+                element.insertAdjacentHTML('beforeend', '<span class="read-more">Read more</span>');
+            }
+        });
+        document.querySelectorAll('.read-more').forEach((el) => {
+            el.style.cursor = 'pointer';
+            el.style.color = 'blue';
+            el.style.textDecoration = 'underline';
+            el.addEventListener('click', (e) => {
+                if (e.target.innerText === 'Read more') {
+                    e.target.innerText = 'Read less';
+                } else {
+                    e.target.innerText = 'Read more';
+                }
+                const text = e.target.parentElement;
+                const toggleText = text.getAttribute('data-toggle');
+                text.setAttribute('data-toggle', text.firstChild.nodeValue);
+                text.firstChild.nodeValue = toggleText;
+            });
+        });
+
+        function showProcess() {
+            const skin_type = '{{ skin_type }}';
+            const age_range = '{{ age_range }}';
+            const tag = '{{ tag }}';
+
+            // add loader
+            const loader = `
+                <div class="loader-overlay">
+                    <div class="loader"></div>
+                </div>
+            `;
+            document.body.insertAdjacentHTML('beforeend', loader);
+
+            const url = `/process?skin_type=${skin_type}&age_range=${age_range}&tag=${tag}`;
+            fetch(url)
+                .then((response) => response.text())
+                .then((data) => {
+                    // remove loader
+                    document.querySelector('.loader-overlay').remove();
+                    const modal = `
+                        <div class="modal">
+                            <div class="modal-content">
+                                <span class="close" onclick="closeModal()">&times;</span>
+                            ${data}
+                            </div>
+                        </div>
+                    `;
+
+                    if (document.querySelector('.modal')) {
+                        let modalElement = document.querySelector('.modal');
+                        modalElement.innerHTML = modal;
+                    } else {
+                        document.body.insertAdjacentHTML('beforeend', modal);
+                    }
+                })
+                .finally(() => {
+                    new DataTable('table', {
+                        scrollX: true,
+                    });
+                });
+        }
+
+        function showReviews(productId, ) {
+            const skin_type = '{{ skin_type }}';
+            const age_range = '{{ age_range }}';
+
+            const url = `/reviews?product_id=${productId}&skin_type=${skin_type}&age_range=${age_range}`;
+            fetch(url)
+                .then((response) => response.json())
+                .then((data) => {
+                    const reviewList = data.map((review) => {
+                        review.rating = parseFloat(review.rating);
+                        const fullStars = '<i class="fa fa-star"></i>'.repeat(review.rating);
+                        const halfStar = review.rating % 1 === 0.5 ? '<i class="fa fa-star-half-o"></i>' : '';
+                        const emptyStars = '<i class="fa fa-star-o"></i>'.repeat(5 - review.rating);
+                        // username
+                        // skin type, age_range
+                        // star rating (star icon)
+                        // review text
+                        return `
+                        <div class="review-box">
+                            <li>
+                                <p><strong style="text-decoration: underline;">${review.username}</strong></p>
+                                <p><strong>Usia:</strong> ${review.age_range}</p>
+                                <p><strong>Jenis Kulit:</strong> ${review.skin_type}</p>
+                                <p><strong>Rating:</strong> ${ fullStars + halfStar + emptyStars }</p>
+                                <p>${review.text}</p>
+                            </li>
+                        </div>`
+                    }).join('');
+
+                    const modal = `
+                        <div class="modal">
+                            <div class="modal-content">
+                                <span class="close" onclick="closeModal()">&times;</span>
+                                <h2>Review Produk</h2>
+                                <ul>${reviewList}</ul>
+                            </div>
+                        </div>
+                    `;
+
+                    if (document.querySelector('.modal')) {
+                        let modalElement = document.querySelector('.modal');
+                        modalElement.innerHTML = modal;
+                    } else {
+                        document.body.insertAdjacentHTML('beforeend', modal);
+                    }
+                });
+        }
+
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                closeModal();
+            }
+        });
+
+        function closeModal() {
+            const modal = document.querySelector('.modal');
+            modal.remove();
+        }
+    </script>
+</body>
+</html>
+

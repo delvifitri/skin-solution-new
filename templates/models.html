@@ -1,0 +1,55 @@
+{% extends 'base.html' %}
+{% block content %}
+<h1>Model {{tag}} </h1>
+
+<div class="overflow-auto">
+    <table>
+    <thead>
+        <tr>
+            <th>Model</th>
+            <th>Skor R2 (rating)</th>
+            <th>Skor R2 (rating text)</th>
+            <th>Akurasi</th>
+            <th>Tanggal Pelatihan</th>
+            <th>Aktif</th>
+            <th>Aksi</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for model in data %}
+        <tr>
+            <td>{{ model.name[:8] }}</td>
+            <td>{{ model.r2_1 }}</td>
+            <td>{{ model.r2_2 }}</td>
+            <td>{{ model.accuracy }}</td>
+            <td>{{ model.train_date or '-' }}</td>
+            <td>
+                <input type="checkbox" name="{{model.name}}" {% if model.active %}checked disabled{% endif %}>
+            </td>
+            <td style="display: flex;">
+                {% if model.name != 'default'%}
+                <a href="/model/{{model.id}}" role="button" style="margin-right: 5px;">Lihat</a>
+                {% endif %}
+                {% if not model.active and model.name != 'default'%}
+                <a href="/model/delete/{{model.id}}" role="button" class="outline">Hapus</a>
+                {% endif %}
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+    </table>
+</div>
+{% endblock %}
+
+{% block foot %}
+<script>
+    document.querySelectorAll('input[type=checkbox]').forEach(el => {
+        el.addEventListener('change', () => {
+            fetch(`/model/active?tag={{tag}}&name=${el.name}`)
+            .then(() => {
+                document.location.reload()
+            })
+        })
+    })
+</script>
+{% endblock %}
