@@ -1,2 +1,2 @@
 [start]
-commands = ["flask run"]
+cmd = 'flask run'
