@@ -5,7 +5,7 @@ from io import BytesIO
 from flask import (Flask, render_template, request, jsonify, redirect, session)
 from werkzeug.security import check_password_hash
 from functools import lru_cache, wraps
-from connect import db 
+from connect import db, cursor as db_cursor
 import math
 import joblib
 import pandas as pd
@@ -25,8 +25,10 @@ from flask_paginate import Pagination, get_page_args
 
 app = Flask(__name__)
 
+#enkripsi session
 app.secret_key = 'sbdfd3223yfh8bdniff8w'
 
+#fungsi dekorator untuk mengecek apakah user sudah login
 def login_required(f):
     @wraps(f)
     def wrap(*args, **kwargs):
@@ -56,7 +58,7 @@ def recommendation():
 
 @lru_cache(maxsize=32)
 def get_recommendations(age_range, skin_type, tag):
-    cursor = db.cursor(dictionary=True)
+    cursor = db_cursor(dictionary=True)
     sql = "SELECT name from training_results where tag=%s and active=1"
     val = (tag,)
     cursor.execute(sql,val)
@@ -151,7 +153,7 @@ def reviews():
     age_range = request.args.get('age_range')
     skin_type = request.args.get('skin_type')
     product_id = request.args.get('product_id')
-    cursor = db.cursor(dictionary=True)
+    cursor = db_cursor(dictionary=True)
     sql = "SELECT reviews.* from reviews where reviews.product_id=%s and reviews.age_range=%s and reviews.skin_type like %s"
     val = (product_id, age_range, f"{skin_type}%")
     cursor.execute(sql,val)
@@ -163,7 +165,7 @@ def process():
     age_range = request.args.get('age_range')
     skin_type = request.args.get('skin_type')
     tag = request.args.get('tag')
-    cursor = db.cursor(dictionary=True)
+    cursor = db_cursor(dictionary=True)
     sql = "SELECT name from training_results where tag=%s and active=1"
     val = (tag,)
     cursor.execute(sql,val)
@@ -262,7 +264,7 @@ def login():
         return redirect('admin')
     if request.method == 'POST':
         password = request.form['password']
-        kursor = db.cursor(dictionary=True)
+        kursor = db_cursor(dictionary=True)
         sql = "SELECT value from settings where name='ADMIN_PASSWORD'"
         kursor.execute(sql)
         data = kursor.fetchone()
@@ -288,7 +290,7 @@ def admin():
 @login_required
 def models():
     tag = request.args.get('tag')
-    kursor = db.cursor(dictionary=True)
+    kursor = db_cursor(dictionary=True)
     sql = "SELECT * from training_results where tag=%s"
     val = (tag,)
     kursor.execute(sql,val)
@@ -300,7 +302,7 @@ def models():
 def model_active():
     tag = request.args.get('tag')
     name = request.args.get('name')
-    kursor = db.cursor(dictionary=True)
+    kursor = db_cursor(dictionary=True)
     sql = "UPDATE training_results set `active`='1' where `name`=%s and tag=%s"
     val = (name,tag)
     kursor.execute(sql,val)
@@ -313,7 +315,7 @@ def model_active():
 @app.route('/model/delete/<id>')
 @login_required
 def model_delete(id):
-    kursor = db.cursor(dictionary=True)
+    kursor = db_cursor(dictionary=True)
     sql = "SELECT name from training_results where id=%s"
     val = (id,)
     kursor.execute(sql,val)
@@ -333,7 +335,7 @@ def model_delete(id):
 @app.route('/model/<id>')
 @login_required
 def model(id):
-    kursor = db.cursor(dictionary=True)
+    kursor = db_cursor(dictionary=True)
     sql = "SELECT * from training_results where id=%s"
     val = (id,)
     kursor.execute(sql,val)
@@ -348,7 +350,7 @@ def training():
     dataset.save("datasets.csv")
 
     checksum = hashlib.md5(open('datasets.csv', 'rb').read()).hexdigest()
-    kursor = db.cursor(dictionary=True)
+    kursor = db_cursor(dictionary=True)
     sql = "SELECT * from training_results where name=%s"
     val = (checksum,)
     kursor.execute(sql,val)
