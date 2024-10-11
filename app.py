@@ -38,26 +38,33 @@ def login_required(f):
             return redirect('login')
     return wrap
 
+# Route untuk halaman utama  
 @app.route('/')
 def index():
     return render_template('index.html')
 
+# Route untuk halaman recommendations
 @app.route('/recommendations')
 def recommendation():
+    # Mengambil parameter dari URL (dari input form method GET)
     age_range = request.args.get('age_range')
     skin_type = request.args.get('skin_type')
     tag = request.args.get('tag')
 
+    # Mengambil parameter page dari URL (dari pagination)
     page = request.args.get('page', type=int, default=1)
+    # Mengambil data produk yang direkomendasikan berdasarkan parameter yang diinputkan
     products = get_recommendations(age_range, skin_type, tag)
 
+    # Membuat pagination
     pagination = Pagination(page=page, total=len(products), record_name='products', per_page=10)
-
     products = products[(page - 1) * 10 : min(page * 10, len(products))]
+
     return render_template('recommendation.html', products=products, age_range=age_range, skin_type=skin_type, tag=tag, pagination=pagination)
 
-@lru_cache(maxsize=32)
+@lru_cache(maxsize=32) # Menyimpan hasil fungsi get_recommendations agar tidak perlu menghitung ulang
 def get_recommendations(age_range, skin_type, tag):
+    # Mengambil model yang sudah di-training yang aktif
     cursor = db_cursor(dictionary=True)
     sql = "SELECT name from training_results where tag=%s and active=1"
     val = (tag,)
@@ -68,6 +75,7 @@ def get_recommendations(age_range, skin_type, tag):
     else:
         name = data['name'][:8]
 
+    # Mengambil data produk berdasarkan parameter yang diinputkan
     sql = "SELECT products.*, count(reviews.id) as review_count from products join reviews on products.id=reviews.product_id  where tag=%s and reviews.age_range=%s and reviews.skin_type like %s group by products.id"
     val = (tag, age_range, f"{skin_type}%")
 
@@ -75,6 +83,7 @@ def get_recommendations(age_range, skin_type, tag):
     data = cursor.fetchall()
     data = {row['id']: row for row in data}
 
+    # Membuat input data untuk model
     data_input= []
     product_id= list(data.keys())
     for id in product_id:
@@ -84,6 +93,7 @@ def get_recommendations(age_range, skin_type, tag):
             "skin_type":skin_type
         })
 
+    # Melakukan one hot encoding
     data_encoding = []
     for inputan in data_input:
         data_encoding.append({
@@ -103,9 +113,11 @@ def get_recommendations(age_range, skin_type, tag):
     
     X = pd.DataFrame(data_encoding)
 
+    # melakukan prediksi rating
     dtr1 = joblib.load(f"models/dtr1/{name}.pkl")
     rating = dtr1.predict(X)
 
+    # melakukan prediksi rating text
     dtr2 = joblib.load(f"models/dtr2/{name}.pkl")
     rating_text = dtr2.predict(X)
 
@@ -114,14 +126,17 @@ def get_recommendations(age_range, skin_type, tag):
     "rating_text":rating_text,
     })
 
+    # melakukan prediksi is_recommended
     svm = joblib.load(f"models/svm/{name}.pkl")
     is_recommended = svm.predict(X2)
 
     hasil=data.copy()
     for id1, rating1, rating_text1, is_recommended1 in zip(product_id, rating, rating_text, is_recommended):
+        # filter out produk yang tidak direkomendasikan
         if is_recommended1 == -1:
             del hasil[id1]
             continue
+        # menghitung rata2 rating 
         hasil[id1].update({
             'rating':rating1,
             'rating_text':rating_text1,
@@ -129,6 +144,7 @@ def get_recommendations(age_range, skin_type, tag):
             'is_recommended':is_recommended1
         })
     for i in hasil.keys():
+        # menghitung skor akhir dengan wilson score interval
         hasil[i]['final_score']=0 if hasil[i]['review_count']==0 else wilson_score(hasil[i]['average'], hasil[i]['review_count'])*5
 
     hasil_akhir = [hasil[i] for i in hasil.keys() if hasil[i]['review_count']!= 0]
@@ -195,6 +211,7 @@ def process():
     # Membuat data input dengan menggabungkan product_id, skin_type, dan age_range
     df_input = pd.DataFrame(data_input).to_html()
 
+    # Melakukan one hot encoding
     data_encoding = []
     for inputan in data_input:
         data_encoding.append({
@@ -211,7 +228,6 @@ def process():
             'skin_type_Normal': 1 if inputan["skin_type"]== "Normal" else 0,
             'skin_type_Oily': 1 if inputan["skin_type"]== "Oily" else 0,
         })
-    # Melakukan one hot encoding
     df_encoding = pd.DataFrame(data_encoding).to_html()
 
     X = pd.DataFrame(data_encoding)
@@ -349,6 +365,9 @@ def training():
     dataset = request.files['dataset']
     dataset.save("datasets.csv")
 
+    # mengambil checksum file dataset
+    # dan mengecek apakah sudah ada model sebelumnya
+    # yang dilatih dengan dataset tersebut
     checksum = hashlib.md5(open('datasets.csv', 'rb').read()).hexdigest()
     kursor = db_cursor(dictionary=True)
     sql = "SELECT * from training_results where name=%s"
@@ -376,7 +395,7 @@ def training():
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
     model = DecisionTreeRegressor()
     model.fit(X_train, y_train)
-    joblib.dump(model, f"models/dtr1/{checksum[:8]}.pkl")
+    joblib.dump(model, f"models/dtr1/{checksum[:8]}.pkl") # menyimpan model ke file pkl
 
     dtr1_train = X_train.merge(y_train, left_index=True, right_index=True)
 
@@ -426,6 +445,7 @@ def training():
 
     cm = confusion_matrix(y_test, y_pred)
 
+    # menyimpan gambar confusion matrix ke dalam bytes untuk disimpan ke database dalam bentuk base64
     fig, ax = plt.subplots()
     disp = ConfusionMatrixDisplay(confusion_matrix=cm, display_labels=model.classes_)
     disp = disp.plot(cmap=plt.cm.Blues, ax=ax)

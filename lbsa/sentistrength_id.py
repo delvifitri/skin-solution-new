@@ -20,12 +20,14 @@ class SentiStrengthID:
     scores = []
     
     def __init__(self):
+        # memuat kamus kata negasi, sentimen, emoticon, idiom, dan booster
         self.list_negasi = [line.replace('\n','') for line in self._load('negatingword.txt')]
         self.list_sentimen = [line.replace('\n','').split(':') for line in self._load('sentiwords_id.txt')]
         self.list_emoticon = [line.replace('\n','').split(' | ') for line in self._load('emoticon_id.txt')]
         self.list_idiom = [line.replace('\n','').split(':') for line in self._load('idioms_id.txt')]
         self.list_booster = [line.replace('\n','').split(':') for line in self._load('boosterwords_id.txt')]
         
+        # membuat kamus kata negasi, sentimen, emoticon, idiom, dan booster
         for term in self.list_sentimen:
             self.dict_sentimen[term[0]] = int(term[1])
         
@@ -38,6 +40,7 @@ class SentiStrengthID:
         for term in self.list_booster:
             self.dict_booster[term[0]] = int(term[1])
             
+        # membuat regular expression untuk preprocessing
         self.re_newline = re.compile(r'\n')
         self.re_html_chars = re.compile(r'&[a-z]+;')
         self.re_url = re.compile(r'http\S+|www\S+')
@@ -55,23 +58,32 @@ class SentiStrengthID:
         self.re_extra_chars = re.compile(r'([A-Za-z])\1{2,}')
         self.re_plural = re.compile(r'([A-Za-z]+)\-\1')
         
+    # fungsi untuk memuat kamus kata dari file
     def _load(self, filename):
         path = os.path.dirname(os.path.abspath(__file__))
         with open(os.path.join(path, f'lexicon/{filename}'), 'r') as f:
             return f.read().splitlines()
     
+    # fungsi untuk mengecek kata negasi
+    # jika kata negasi ditemukan, maka nilai sentimen akan dibalik
     def _cek_negasi(self, p_term1, p_term2):
         if p_term1 in self.list_negasi or p_term2 in self.list_negasi or f'{p_term2} {p_term1}' in self.list_negasi:
             self._score = -self._score
     
+    # fungsi untuk mengecek kata booster
+    # jika kata booster ditemukan, maka nilai sentimen akan ditambah atau dikurangi
     def _cek_booster(self, term):
         booster_score = self.dict_booster[term]
         self._score += booster_score if self._score > 0 else -booster_score
     
+    # fungsi untuk mengecek kata consecutive (kata yang berurutan)
+    # jika kata consecutive ditemukan, maka nilai sentimen akan ditambah atau dikurangi
     def _cek_consecutive(self, p_term):
         if self._prev > 0 and self._score >= 3: self._score += 1
         if self._prev < 0 and self._score <= -3: self._score -= 1
     
+    # fungsi untuk mengecek idiom
+    # jika idiom ditemukan, maka nilai sentimen akan disesuaikan
     def _cek_idiom(self, bigram, trigram, i):
         bigram = ' '.join(bigram)
         trigram = ' '.join(trigram)
@@ -81,21 +93,32 @@ class SentiStrengthID:
             self._score = idiom_score
             self._prev = 0
     
+    # fungsi untuk mengecek penegasan (kata yang mengandung tanda seru)
+    # jika penegasan ditemukan, maka nilai sentimen akan ditambah atau dikurangi
     def _cek_penegasan(self, n_term):
         if self.re_multi_exclamation.search(n_term):
             self._score += 1 if self._score >= 3 else -3 if self._score <= -3 else 0
     
+    # fungsi untuk menghapus karakter (double, triple, dst)
     def _remove_extra_char(self, term):
         return self.re_extra_chars.sub(r'\1',term)
     
+    # fungsi untuk mengubah kata plural menjadi singular
+    # contoh: 'kucing-kucing' menjadi 'kucing'
     def _plural_to_singular(self, term):
         return self.re_plural.sub(r'\1',term)
     
+    # fungsi untuk memproses simbol emoticon
+    # simbol emoticon akan diubah menjadi 'EMOTICON#i#'
+    # lalu simbol lainnya akan dihapus
+    # setelah itu, simbol emoticon akan dikembalikan ke bentuk semula
     def _preprocess_symbols(self, text):
         emoticons_found = self.re_keep_emoticons.findall(text)
 
         for i, emoticon in enumerate(emoticons_found):
             text.replace(emoticon, f'EMOTICON#{i}#')
+        
+        text = self.re_keep_chars.sub(' ', text)
             
         for i, emoticon in enumerate(emoticons_found):
             text.replace(f'EMOTICON#{i}#', emoticon)
@@ -118,6 +141,10 @@ class SentiStrengthID:
         text = self.re_whitespaces.sub(' ', text)
         return text
     
+    # fungsi untuk normalisasi nilai sentimen
+    # -7 diambil dari nilai minimum sentimen (-5 ditambah -2 (dari booster atau penegasan))
+    # 7 diamil dari nilai maksimum sentimen (5 ditambah 2 (dari booster atau penegasan))
+    # nilai sentimen akan dinormalisasi ke skala 0-5
     def _normalize(self, score):
         return (score - (-7)) * (5 - 0) / (7 - (-7))        
     
